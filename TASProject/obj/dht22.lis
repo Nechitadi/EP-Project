@@ -1,0 +1,1177 @@
+ 0000                   cpu LMM
+                        .module dht22.c
+                        .area text(rom, con, rel)
+ 0000                   .dbfile ./dht22.c
+ 0000                   .dbfile D:\ADRIAN~1\TASPRO~1\TASPRO~1\dht22.c
+ 0000                   .dbfunc e Wait_ms _Wait_ms fV
+ 0000           ;         millis -> X-5
+ 0000           _Wait_ms::
+ 0000                   .dbline -1
+ 0000 10                push X
+ 0001 4F                mov X,SP
+ 0002                   .dbline 33
+ 0002           ; /*****************************************************************************
+ 0002           ; * File Name: dht22.c
+ 0002           ; *
+ 0002           ; * Version: 1.0
+ 0002           ; *
+ 0002           ; * Description:
+ 0002           ; * DHT22 Library for PSoC 1 - Source file for DHT22 temperature sensing
+ 0002           ; *
+ 0002           ; * Owner:
+ 0002           ; * George MOIS (gicamois@yahoo.com)
+ 0002           ; *
+ 0002           ; * Hardware Dependency:
+ 0002           ; * DHT22 Digital Temperature Sensor 
+ 0002           ; *
+ 0002           ; * Code Tested With:
+ 0002           ; * 1. PSoC Designer 5.2 (SP1) - Build 2551
+ 0002           ; * 2. ImageCraft C Compiler
+ 0002           ; *
+ 0002           ; ******************************************************************************/
+ 0002           ; 
+ 0002           ; #include "dht22.h"
+ 0002           ; #include <LCD.h>
+ 0002           ; #include <stdlib.h>
+ 0002           ; #include <string.h> 
+ 0002           ; 
+ 0002           ; /* Byte Array to hold Scratchpad data */
+ 0002           ; BYTE scratchpad[SRAMSIZE];
+ 0002           ; 
+ 0002           ; /* Byte Array to hold LCD display string */
+ 0002           ; BYTE lcdString[16];
+ 0002           ; 
+ 0002           ; void Wait_ms(WORD millis)
+ 0002           ; {
+ 0002 800D              xjmp L3
+ 0004           L2:
+ 0004                   .dbline 35
+ 0004           ;       while(millis)
+ 0004           ;       {
+ 0004                   .dbline 36
+ 0004           ;               LCD_Delay50uTimes(20); 
+ 0004 10                push X
+ 0005 5014              mov A,20
+ 0007 7C0000            xcall _LCD_Delay50uTimes
+ 000A 20                pop X
+ 000B                   .dbline 37
+ 000B           ;               millis--;
+ 000B 7BFC              dec [X-4]
+ 000D 1FFB00            sbb [X-5],0
+ 0010                   .dbline 38
+ 0010           ;       }
+ 0010           L3:
+ 0010                   .dbline 34
+ 0010 3DFB00            cmp [X-5],0
+ 0013 BFF0              jnz L2
+ 0015 3DFC00            cmp [X-4],0
+ 0018 BFEB              jnz L2
+ 001A           X0:
+ 001A                   .dbline -2
+ 001A           L1:
+ 001A 20                pop X
+ 001B                   .dbline 0 ; func end
+ 001B 7F                ret
+ 001C                   .dbsym l millis -5 i
+ 001C                   .dbend
+ 001C                   .dbfunc e DHT22_Get_Temp _DHT22_Get_Temp fc
+ 001C           ;              i -> X+10
+ 001C           ;         index1 -> X+8
+ 001C           ;         startx -> X+7
+ 001C           ;        vercode -> X+6
+ 001C           ;             t1 -> X+5
+ 001C           ;              t -> X+4
+ 001C           ;            rh1 -> X+3
+ 001C           ;             rh -> X+2
+ 001C           ;          index -> X+0
+ 001C           _DHT22_Get_Temp::
+ 001C                   .dbline -1
+ 001C 10                push X
+ 001D 4F                mov X,SP
+ 001E 380C              add SP,12
+ 0020                   .dbline 42
+ 0020           ; }
+ 0020           ; 
+ 0020           ; BOOL DHT22_Get_Temp(void)
+ 0020           ; {
+ 0020                   .dbline 54
+ 0020           ;       unsigned int index;
+ 0020           ;       unsigned int index1;
+ 0020           ;       unsigned int i;
+ 0020           ;       BYTE startx;
+ 0020           ;       BYTE rh;
+ 0020           ;       BYTE rh1;
+ 0020           ;       BYTE t;
+ 0020           ;       BYTE t1;
+ 0020           ;       BYTE vercode;
+ 0020           ;               
+ 0020           ;               //change P2[7] to ODL - 000
+ 0020           ;               PRT2DM0 |= 0x80;
+ 0020 7110              or F,0x10  ; iopage = 1
+ 0022 430880            or REG[0x8],-128
+ 0025                   .dbline 55
+ 0025           ;               PRT2DM1 |= 0x80;
+ 0025 430980            or REG[0x9],-128
+ 0028                   .dbline 56
+ 0028           ;               PRT2DM2 |= 0x80;
+ 0028 70CF              and F,0xCF      ; iopage = 0
+ 002A 430B80            or REG[0xb],-128
+ 002D                   .dbline 59
+ 002D           ;               
+ 002D           ;               //write 0 to P2[7] for 5ms
+ 002D           ;               PRT2DR &= ~0x80;
+ 002D 41087F            and REG[0x8],127
+ 0030                   .dbline 60
+ 0030           ;               Wait_ms(7);
+ 0030 5000              mov A,0
+ 0032 08                push A
+ 0033 5007              mov A,7
+ 0035 08                push A
+ 0036 9FC8              xcall _Wait_ms
+ 0038 38FE              add SP,-2
+ 003A                   .dbline 63
+ 003A           ;               
+ 003A           ;               //write 1 to P2[7] for 30us
+ 003A           ;               PRT2DR |= 0x80;
+ 003A 430880            or REG[0x8],-128
+ 003D                   .dbline 64
+ 003D           ;               for(index = 0; index < 6; index++);
+ 003D 560100            mov [X+1],0
+ 0040 560000            mov [X+0],0
+ 0043 8006              xjmp L9
+ 0045           L6:
+ 0045                   .dbline 64
+ 0045           L7:
+ 0045                   .dbline 64
+ 0045 7701              inc [X+1]
+ 0047 0F0000            adc [X+0],0
+ 004A           L9:
+ 004A                   .dbline 64
+ 004A 5201              mov A,[X+1]
+ 004C 1106              sub A,6
+ 004E 5200              mov A,[X+0]
+ 0050 1900              sbb A,0
+ 0052 CFF2              jc L6
+ 0054           X1:
+ 0054                   .dbline 67
+ 0054           ;               
+ 0054           ;               //change P2[7] to High-Z - input - 010
+ 0054           ;               PRT2DM0 &= ~0x80;
+ 0054 7110              or F,0x10  ; iopage = 1
+ 0056 41087F            and REG[0x8],127
+ 0059                   .dbline 68
+ 0059           ;               PRT2DM1 |= 0x80;
+ 0059 430980            or REG[0x9],-128
+ 005C                   .dbline 69
+ 005C           ;               PRT2DM2 &= ~0x80;
+ 005C 70CF              and F,0xCF      ; iopage = 0
+ 005E 410B7F            and REG[0xb],127
+ 0061                   .dbline 72
+ 0061           ;               
+ 0061           ;               //initialize start
+ 0061           ;               startx=0x00;
+ 0061 560700            mov [X+7],0
+ 0064                   .dbline 78
+ 0064           ;               
+ 0064           ;               //read from P2[7] start from sensor
+ 0064           ;               
+ 0064           ;               //wait for 50us and read P2[7] 
+ 0064           ;               //it should be 0
+ 0064           ;               LCD_Delay50u();
+ 0064 10                push X
+ 0065 7C0000            xcall _LCD_Delay50u
+ 0068 20                pop X
+ 0069                   .dbline 79
+ 0069           ;               if (~PRT2DR & 0x80){startx |= 0x01;};
+ 0069 5D08              mov A,REG[0x8]
+ 006B 62D000            mov REG[0xd0],>__r0
+ 006E 73                cpl A
+ 006F 5300              mov [__r0],A
+ 0071 260080            and [__r0],-128
+ 0074 A004              jz L10
+ 0076                   .dbline 79
+ 0076                   .dbline 79
+ 0076 2F0701            or [X+7],1
+ 0079                   .dbline 79
+ 0079           L10:
+ 0079                   .dbline 79
+ 0079                   .dbline 83
+ 0079           ;               
+ 0079           ;               //wait for another 50us and read P2[7]
+ 0079           ;               //it should be 1
+ 0079           ;               LCD_Delay50u();
+ 0079 10                push X
+ 007A 7C0000            xcall _LCD_Delay50u
+ 007D 20                pop X
+ 007E                   .dbline 84
+ 007E           ;               if (PRT2DR & 0x80){startx |= 0x02;}
+ 007E 5D08              mov A,REG[0x8]
+ 0080 62D000            mov REG[0xd0],>__r0
+ 0083 5300              mov [__r0],A
+ 0085 470080            tst [__r0],-128
+ 0088 A004              jz L12
+ 008A                   .dbline 84
+ 008A                   .dbline 84
+ 008A 2F0702            or [X+7],2
+ 008D                   .dbline 84
+ 008D           L12:
+ 008D                   .dbline 86
+ 008D           ;               
+ 008D           ;               if (startx==0x03){
+ 008D 3D0703            cmp [X+7],3
+ 0090 B1B6              jnz L14
+ 0092                   .dbline 90
+ 0092           ;               //while 1 on input stay
+ 0092           ;               //it's the 1 that lasts 80us
+ 0092           ;               //sent from sensor
+ 0092           ;               while((PRT2DR & 0x80)==0x80){};
+ 0092           L16:
+ 0092                   .dbline 90
+ 0092                   .dbline 90
+ 0092           L17:
+ 0092                   .dbline 90
+ 0092 5D08              mov A,REG[0x8]
+ 0094 62D000            mov REG[0xd0],>__r0
+ 0097 5300              mov [__r0],A
+ 0099 260080            and [__r0],-128
+ 009C 3C0080            cmp [__r0],-128
+ 009F AFF2              jz L16
+ 00A1                   .dbline 90
+ 00A1                   .dbline 91
+ 00A1           ;               for(index = 0; index < 8; index++);
+ 00A1 560100            mov [X+1],0
+ 00A4 560000            mov [X+0],0
+ 00A7 8006              xjmp L22
+ 00A9           L19:
+ 00A9                   .dbline 91
+ 00A9           L20:
+ 00A9                   .dbline 91
+ 00A9 7701              inc [X+1]
+ 00AB 0F0000            adc [X+0],0
+ 00AE           L22:
+ 00AE                   .dbline 91
+ 00AE 5201              mov A,[X+1]
+ 00B0 1108              sub A,8
+ 00B2 5200              mov A,[X+0]
+ 00B4 1900              sbb A,0
+ 00B6 CFF2              jc L19
+ 00B8           X2:
+ 00B8                   .dbline 94
+ 00B8           ; 
+ 00B8           ;               //read the MSB BYTE of the RH Value
+ 00B8           ;               for(index = 0; index < 8; index++){
+ 00B8 560100            mov [X+1],0
+ 00BB 560000            mov [X+0],0
+ 00BE 8035              xjmp L26
+ 00C0           L27:
+ 00C0                   .dbline 97
+ 00C0           ;               //read bit 7
+ 00C0           ;               //0 signaling sending of bit
+ 00C0           ;               while((PRT2DR & 0x80)==0x00){};
+ 00C0                   .dbline 97
+ 00C0           L28:
+ 00C0                   .dbline 97
+ 00C0 5D08              mov A,REG[0x8]
+ 00C2 62D000            mov REG[0xd0],>__r0
+ 00C5 5300              mov [__r0],A
+ 00C7 470080            tst [__r0],-128
+ 00CA AFF5              jz L27
+ 00CC                   .dbline 97
+ 00CC                   .dbline 99
+ 00CC           ;               //wait for 50 us
+ 00CC           ;           LCD_Delay50u();
+ 00CC 10                push X
+ 00CD 7C0000            xcall _LCD_Delay50u
+ 00D0 20                pop X
+ 00D1                   .dbline 101
+ 00D1           ;               //shift byte to the left
+ 00D1           ;               rh = rh << 1;
+ 00D1 6602              asl [X+2]
+ 00D3                   .dbline 103
+ 00D3           ;           //read line
+ 00D3           ;               if ((PRT2DR & 0x80)==0x80) 
+ 00D3 5D08              mov A,REG[0x8]
+ 00D5 62D000            mov REG[0xd0],>__r0
+ 00D8 5300              mov [__r0],A
+ 00DA 260080            and [__r0],-128
+ 00DD 3C0080            cmp [__r0],-128
+ 00E0 B00B              jnz L30
+ 00E2                   .dbline 105
+ 00E2           ;                       {//read 1, wait for another 50us
+ 00E2           ;                       rh |= 0x01;
+ 00E2                   .dbline 105
+ 00E2 2F0201            or [X+2],1
+ 00E5                   .dbline 106
+ 00E5           ;                       LCD_Delay50u();
+ 00E5 10                push X
+ 00E6 7C0000            xcall _LCD_Delay50u
+ 00E9 20                pop X
+ 00EA                   .dbline 107
+ 00EA           ;                       }
+ 00EA 8004              xjmp L31
+ 00EC           L30:
+ 00EC                   .dbline 109
+ 00EC           ;               else
+ 00EC           ;                       {//read 0, go to next bit
+ 00EC                   .dbline 110
+ 00EC           ;                       rh &= ~0x01;
+ 00EC 2702FE            and [X+2],-2
+ 00EF                   .dbline 111
+ 00EF           ;                       }
+ 00EF           L31:
+ 00EF                   .dbline 112
+ 00EF           ;               }       
+ 00EF           L24:
+ 00EF                   .dbline 94
+ 00EF 7701              inc [X+1]
+ 00F1 0F0000            adc [X+0],0
+ 00F4           L26:
+ 00F4                   .dbline 94
+ 00F4 5201              mov A,[X+1]
+ 00F6 1108              sub A,8
+ 00F8 5200              mov A,[X+0]
+ 00FA 1900              sbb A,0
+ 00FC CFC3              jc L28
+ 00FE           X3:
+ 00FE                   .dbline 115
+ 00FE           ; 
+ 00FE           ;               //read the LSB BYTE of the RH Value
+ 00FE           ;               for(index = 0; index < 8; index++){
+ 00FE 560100            mov [X+1],0
+ 0101 560000            mov [X+0],0
+ 0104 8035              xjmp L35
+ 0106           L36:
+ 0106                   .dbline 118
+ 0106           ;               //read bit 7
+ 0106           ;               //0 signaling sending of bit
+ 0106           ;               while((PRT2DR & 0x80)==0x00){};
+ 0106                   .dbline 118
+ 0106           L37:
+ 0106                   .dbline 118
+ 0106 5D08              mov A,REG[0x8]
+ 0108 62D000            mov REG[0xd0],>__r0
+ 010B 5300              mov [__r0],A
+ 010D 470080            tst [__r0],-128
+ 0110 AFF5              jz L36
+ 0112                   .dbline 118
+ 0112                   .dbline 120
+ 0112           ;               //wait for 50 us
+ 0112           ;           LCD_Delay50u();
+ 0112 10                push X
+ 0113 7C0000            xcall _LCD_Delay50u
+ 0116 20                pop X
+ 0117                   .dbline 122
+ 0117           ;               //shift byte to the left
+ 0117           ;               rh1 = rh1 << 1;
+ 0117 6603              asl [X+3]
+ 0119                   .dbline 124
+ 0119           ;           //read line
+ 0119           ;               if ((PRT2DR & 0x80)==0x80) 
+ 0119 5D08              mov A,REG[0x8]
+ 011B 62D000            mov REG[0xd0],>__r0
+ 011E 5300              mov [__r0],A
+ 0120 260080            and [__r0],-128
+ 0123 3C0080            cmp [__r0],-128
+ 0126 B00B              jnz L39
+ 0128                   .dbline 126
+ 0128           ;                       {//read 1, wait for another 50us
+ 0128           ;                       rh1 |= 0x01;
+ 0128                   .dbline 126
+ 0128 2F0301            or [X+3],1
+ 012B                   .dbline 127
+ 012B           ;                       LCD_Delay50u();
+ 012B 10                push X
+ 012C 7C0000            xcall _LCD_Delay50u
+ 012F 20                pop X
+ 0130                   .dbline 128
+ 0130           ;                       }
+ 0130 8004              xjmp L40
+ 0132           L39:
+ 0132                   .dbline 130
+ 0132           ;               else
+ 0132           ;                       {//read 0, go to next bit
+ 0132                   .dbline 131
+ 0132           ;                       rh1 &= ~0x01;
+ 0132 2703FE            and [X+3],-2
+ 0135                   .dbline 132
+ 0135           ;                       }
+ 0135           L40:
+ 0135                   .dbline 133
+ 0135           ;               }       
+ 0135           L33:
+ 0135                   .dbline 115
+ 0135 7701              inc [X+1]
+ 0137 0F0000            adc [X+0],0
+ 013A           L35:
+ 013A                   .dbline 115
+ 013A 5201              mov A,[X+1]
+ 013C 1108              sub A,8
+ 013E 5200              mov A,[X+0]
+ 0140 1900              sbb A,0
+ 0142 CFC3              jc L37
+ 0144           X4:
+ 0144                   .dbline 136
+ 0144           ;               
+ 0144           ;               //read the MSB BYTE of the T Value
+ 0144           ;               for(index = 0; index < 8; index++){
+ 0144 560100            mov [X+1],0
+ 0147 560000            mov [X+0],0
+ 014A 8035              xjmp L44
+ 014C           L45:
+ 014C                   .dbline 139
+ 014C           ;               //read bit 7
+ 014C           ;               //0 signaling sending of bit
+ 014C           ;               while((PRT2DR & 0x80)==0x00){};
+ 014C                   .dbline 139
+ 014C           L46:
+ 014C                   .dbline 139
+ 014C 5D08              mov A,REG[0x8]
+ 014E 62D000            mov REG[0xd0],>__r0
+ 0151 5300              mov [__r0],A
+ 0153 470080            tst [__r0],-128
+ 0156 AFF5              jz L45
+ 0158                   .dbline 139
+ 0158                   .dbline 141
+ 0158           ;               //wait for 50 us
+ 0158           ;           LCD_Delay50u();
+ 0158 10                push X
+ 0159 7C0000            xcall _LCD_Delay50u
+ 015C 20                pop X
+ 015D                   .dbline 143
+ 015D           ;               //shift byte to the left
+ 015D           ;               t = t << 1;
+ 015D 6604              asl [X+4]
+ 015F                   .dbline 145
+ 015F           ;           //read line
+ 015F           ;               if ((PRT2DR & 0x80)==0x80) 
+ 015F 5D08              mov A,REG[0x8]
+ 0161 62D000            mov REG[0xd0],>__r0
+ 0164 5300              mov [__r0],A
+ 0166 260080            and [__r0],-128
+ 0169 3C0080            cmp [__r0],-128
+ 016C B00B              jnz L48
+ 016E                   .dbline 147
+ 016E           ;                       {//read 1, wait for another 50us
+ 016E           ;                       t |= 0x01;
+ 016E                   .dbline 147
+ 016E 2F0401            or [X+4],1
+ 0171                   .dbline 148
+ 0171           ;                       LCD_Delay50u();
+ 0171 10                push X
+ 0172 7C0000            xcall _LCD_Delay50u
+ 0175 20                pop X
+ 0176                   .dbline 149
+ 0176           ;                       }
+ 0176 8004              xjmp L49
+ 0178           L48:
+ 0178                   .dbline 151
+ 0178           ;               else
+ 0178           ;                       {//read 0, go to next bit
+ 0178                   .dbline 152
+ 0178           ;                       t &= ~0x01;
+ 0178 2704FE            and [X+4],-2
+ 017B                   .dbline 153
+ 017B           ;                       }
+ 017B           L49:
+ 017B                   .dbline 154
+ 017B           ;               }       
+ 017B           L42:
+ 017B                   .dbline 136
+ 017B 7701              inc [X+1]
+ 017D 0F0000            adc [X+0],0
+ 0180           L44:
+ 0180                   .dbline 136
+ 0180 5201              mov A,[X+1]
+ 0182 1108              sub A,8
+ 0184 5200              mov A,[X+0]
+ 0186 1900              sbb A,0
+ 0188 CFC3              jc L46
+ 018A           X5:
+ 018A                   .dbline 157
+ 018A           ;               
+ 018A           ;               //read the MSB BYTE of the T Value
+ 018A           ;               for(index = 0; index < 8; index++){
+ 018A 560100            mov [X+1],0
+ 018D 560000            mov [X+0],0
+ 0190 8035              xjmp L53
+ 0192           L54:
+ 0192                   .dbline 160
+ 0192           ;               //read bit 7
+ 0192           ;               //0 signaling sending of bit
+ 0192           ;               while((PRT2DR & 0x80)==0x00){};
+ 0192                   .dbline 160
+ 0192           L55:
+ 0192                   .dbline 160
+ 0192 5D08              mov A,REG[0x8]
+ 0194 62D000            mov REG[0xd0],>__r0
+ 0197 5300              mov [__r0],A
+ 0199 470080            tst [__r0],-128
+ 019C AFF5              jz L54
+ 019E                   .dbline 160
+ 019E                   .dbline 162
+ 019E           ;               //wait for 50 us
+ 019E           ;           LCD_Delay50u();
+ 019E 10                push X
+ 019F 7C0000            xcall _LCD_Delay50u
+ 01A2 20                pop X
+ 01A3                   .dbline 164
+ 01A3           ;               //shift byte to the left
+ 01A3           ;               t1 = t1 << 1;
+ 01A3 6605              asl [X+5]
+ 01A5                   .dbline 166
+ 01A5           ;           //read line
+ 01A5           ;               if ((PRT2DR & 0x80)==0x80) 
+ 01A5 5D08              mov A,REG[0x8]
+ 01A7 62D000            mov REG[0xd0],>__r0
+ 01AA 5300              mov [__r0],A
+ 01AC 260080            and [__r0],-128
+ 01AF 3C0080            cmp [__r0],-128
+ 01B2 B00B              jnz L57
+ 01B4                   .dbline 168
+ 01B4           ;                       {//read 1, wait for another 50us
+ 01B4           ;                       t1 |= 0x01;
+ 01B4                   .dbline 168
+ 01B4 2F0501            or [X+5],1
+ 01B7                   .dbline 169
+ 01B7           ;                       LCD_Delay50u();
+ 01B7 10                push X
+ 01B8 7C0000            xcall _LCD_Delay50u
+ 01BB 20                pop X
+ 01BC                   .dbline 170
+ 01BC           ;                       }
+ 01BC 8004              xjmp L58
+ 01BE           L57:
+ 01BE                   .dbline 172
+ 01BE           ;               else
+ 01BE           ;                       {//read 0, go to next bit
+ 01BE                   .dbline 173
+ 01BE           ;                       t1 &= ~0x01;
+ 01BE 2705FE            and [X+5],-2
+ 01C1                   .dbline 174
+ 01C1           ;                       }
+ 01C1           L58:
+ 01C1                   .dbline 175
+ 01C1           ;               }       
+ 01C1           L51:
+ 01C1                   .dbline 157
+ 01C1 7701              inc [X+1]
+ 01C3 0F0000            adc [X+0],0
+ 01C6           L53:
+ 01C6                   .dbline 157
+ 01C6 5201              mov A,[X+1]
+ 01C8 1108              sub A,8
+ 01CA 5200              mov A,[X+0]
+ 01CC 1900              sbb A,0
+ 01CE CFC3              jc L55
+ 01D0           X6:
+ 01D0                   .dbline 178
+ 01D0           ;               
+ 01D0           ;               //read the CRC
+ 01D0           ;               for(index = 0; index < 8; index++){
+ 01D0 560100            mov [X+1],0
+ 01D3 560000            mov [X+0],0
+ 01D6 8035              xjmp L62
+ 01D8           L63:
+ 01D8                   .dbline 181
+ 01D8           ;               //read bit 7
+ 01D8           ;               //0 signaling sending of bit
+ 01D8           ;               while((PRT2DR & 0x80)==0x00){};
+ 01D8                   .dbline 181
+ 01D8           L64:
+ 01D8                   .dbline 181
+ 01D8 5D08              mov A,REG[0x8]
+ 01DA 62D000            mov REG[0xd0],>__r0
+ 01DD 5300              mov [__r0],A
+ 01DF 470080            tst [__r0],-128
+ 01E2 AFF5              jz L63
+ 01E4                   .dbline 181
+ 01E4                   .dbline 183
+ 01E4           ;               //wait for 50 us
+ 01E4           ;           LCD_Delay50u();
+ 01E4 10                push X
+ 01E5 7C0000            xcall _LCD_Delay50u
+ 01E8 20                pop X
+ 01E9                   .dbline 185
+ 01E9           ;               //shift byte to the left
+ 01E9           ;               vercode = vercode << 1;
+ 01E9 6606              asl [X+6]
+ 01EB                   .dbline 187
+ 01EB           ;           //read line
+ 01EB           ;               if ((PRT2DR & 0x80)==0x80) 
+ 01EB 5D08              mov A,REG[0x8]
+ 01ED 62D000            mov REG[0xd0],>__r0
+ 01F0 5300              mov [__r0],A
+ 01F2 260080            and [__r0],-128
+ 01F5 3C0080            cmp [__r0],-128
+ 01F8 B00B              jnz L66
+ 01FA                   .dbline 189
+ 01FA           ;                       {//read 1, wait for another 50us
+ 01FA           ;                       vercode |= 0x01;
+ 01FA                   .dbline 189
+ 01FA 2F0601            or [X+6],1
+ 01FD                   .dbline 190
+ 01FD           ;                       LCD_Delay50u();
+ 01FD 10                push X
+ 01FE 7C0000            xcall _LCD_Delay50u
+ 0201 20                pop X
+ 0202                   .dbline 191
+ 0202           ;                       }
+ 0202 8004              xjmp L67
+ 0204           L66:
+ 0204                   .dbline 193
+ 0204           ;               else
+ 0204           ;                       {//read 0, go to next bit
+ 0204                   .dbline 194
+ 0204           ;                       vercode &= ~0x01;
+ 0204 2706FE            and [X+6],-2
+ 0207                   .dbline 195
+ 0207           ;                       }
+ 0207           L67:
+ 0207                   .dbline 196
+ 0207           ;               }       
+ 0207           L60:
+ 0207                   .dbline 178
+ 0207 7701              inc [X+1]
+ 0209 0F0000            adc [X+0],0
+ 020C           L62:
+ 020C                   .dbline 178
+ 020C 5201              mov A,[X+1]
+ 020E 1108              sub A,8
+ 0210 5200              mov A,[X+0]
+ 0212 1900              sbb A,0
+ 0214 CFC3              jc L64
+ 0216           X7:
+ 0216                   .dbline 198
+ 0216           ;               
+ 0216           ;               if (vercode==rh+rh1+t+t1)
+ 0216 62D000            mov REG[0xd0],>__r0
+ 0219 5202              mov A,[X+2]
+ 021B 0303              add A,[X+3]
+ 021D 5300              mov [__r0],A
+ 021F 5204              mov A,[X+4]
+ 0221 0400              add [__r0],A
+ 0223 5205              mov A,[X+5]
+ 0225 0400              add [__r0],A
+ 0227 5206              mov A,[X+6]
+ 0229 3A00              cmp A,[__r0]
+ 022B B01B              jnz L68
+ 022D                   .dbline 200
+ 022D           ;               {
+ 022D           ;               scratchpad[0x00]=rh;
+ 022D                   .dbline 200
+ 022D 5202              mov A,[X+2]
+ 022F 62D000            mov REG[0xd0],>_scratchpad
+ 0232 5300              mov [_scratchpad],A
+ 0234                   .dbline 201
+ 0234           ;               scratchpad[0x01]=rh1;
+ 0234 5203              mov A,[X+3]
+ 0236 5301              mov [_scratchpad+1],A
+ 0238                   .dbline 202
+ 0238           ;               scratchpad[0x02]=t;
+ 0238 5204              mov A,[X+4]
+ 023A 5302              mov [_scratchpad+2],A
+ 023C                   .dbline 203
+ 023C           ;               scratchpad[0x03]=t1;
+ 023C 5205              mov A,[X+5]
+ 023E 5303              mov [_scratchpad+3],A
+ 0240                   .dbline 204
+ 0240           ;               return 1;
+ 0240 62D000            mov REG[0xd0],>__r0
+ 0243 5001              mov A,1
+ 0245 8006              xjmp L5
+ 0247           L68:
+ 0247                   .dbline 206
+ 0247           ;               }
+ 0247           ;               }
+ 0247           L14:
+ 0247                   .dbline 208
+ 0247           ; 
+ 0247           ;               return 0;
+ 0247 62D000            mov REG[0xd0],>__r0
+ 024A 5000              mov A,0
+ 024C                   .dbline -2
+ 024C           L5:
+ 024C 38F4              add SP,-12
+ 024E 20                pop X
+ 024F                   .dbline 0 ; func end
+ 024F 7F                ret
+ 0250                   .dbsym l i 10 i
+ 0250                   .dbsym l index1 8 i
+ 0250                   .dbsym l startx 7 c
+ 0250                   .dbsym l vercode 6 c
+ 0250                   .dbsym l t1 5 c
+ 0250                   .dbsym l t 4 c
+ 0250                   .dbsym l rh1 3 c
+ 0250                   .dbsym l rh 2 c
+ 0250                   .dbsym l index 0 i
+ 0250                   .dbend
+ 0250                   .dbfunc e DHT22_GetTempSign _DHT22_GetTempSign fc
+ 0250           _DHT22_GetTempSign::
+ 0250                   .dbline -1
+ 0250                   .dbline 213
+ 0250           ; }
+ 0250           ; 
+ 0250           ; /* Get sign of temperature from the Scratchpad data */
+ 0250           ; BOOL DHT22_GetTempSign(void)
+ 0250           ; {
+ 0250                   .dbline 215
+ 0250           ;       /* if minus modify scratchpad, keep minus and rewrtie temp value*/
+ 0250           ;       if ((scratchpad[TEMP_MSB] & SIGNMASK)==0x80)
+ 0250 62D000            mov REG[0xd0],>_scratchpad
+ 0253 5102              mov A,[_scratchpad+2]
+ 0255 2180              and A,-128
+ 0257 3980              cmp A,-128
+ 0259 B004              jnz L74
+ 025B                   .dbline 217
+ 025B           ;       {
+ 025B           ;               scratchpad[TEMP_MSB] &=~SIGNMASK;
+ 025B                   .dbline 217
+ 025B 26027F            and [_scratchpad+2],127
+ 025E                   .dbline 218
+ 025E           ;       }
+ 025E           L74:
+ 025E                   .dbline 222
+ 025E           ;       /* DHT22_GetTempSign returns:
+ 025E           ;        1 = Negative (<  0 C)
+ 025E           ;        0 = Positive (>= 0 C) */
+ 025E           ;       return scratchpad[TEMP_MSB] & SIGNMASK;
+ 025E 62D000            mov REG[0xd0],>_scratchpad
+ 0261 5102              mov A,[_scratchpad+2]
+ 0263 2180              and A,-128
+ 0265 62D000            mov REG[0xd0],>__r0
+ 0268                   .dbline -2
+ 0268           L73:
+ 0268                   .dbline 0 ; func end
+ 0268 7F                ret
+ 0269                   .dbend
+ 0269                   .dbfunc e DHT22_CalculateTemp _DHT22_CalculateTemp fi
+ 0269           ;       tempVal0 -> X+3
+ 0269           ;       tempVal1 -> X+2
+ 0269           ;       calcTemp -> X+0
+ 0269           _DHT22_CalculateTemp::
+ 0269                   .dbline -1
+ 0269 10                push X
+ 026A 4F                mov X,SP
+ 026B 3804              add SP,4
+ 026D                   .dbline 227
+ 026D           ; }
+ 026D           ; 
+ 026D           ; /* Calculate temperature value from the readback data */
+ 026D           ; WORD DHT22_CalculateTemp(void)
+ 026D           ; {
+ 026D                   .dbline 229
+ 026D           ;       WORD calcTemp;
+ 026D           ;       BYTE tempVal0 = scratchpad[TEMP_LSB];
+ 026D 62D000            mov REG[0xd0],>_scratchpad
+ 0270 5103              mov A,[_scratchpad+3]
+ 0272 5403              mov [X+3],A
+ 0274                   .dbline 230
+ 0274           ;       BYTE tempVal1 = scratchpad[TEMP_MSB];
+ 0274 5102              mov A,[_scratchpad+2]
+ 0276 5402              mov [X+2],A
+ 0278                   .dbline 235
+ 0278           ; 
+ 0278           ;       /* Calculate temperature
+ 0278           ;          the resultant value is multiplied by SCALE_FACT to preserve decimal digits */
+ 0278           ;       
+ 0278           ;       calcTemp = (SCALE_FACT * tempVal1) >> 1;
+ 0278 62D000            mov REG[0xd0],>__r0
+ 027B 5202              mov A,[X+2]
+ 027D 5300              mov [__r1],A
+ 027F 5000              mov A,0
+ 0281 08                push A
+ 0282 5100              mov A,[__r1]
+ 0284 08                push A
+ 0285 5000              mov A,0
+ 0287 08                push A
+ 0288 500A              mov A,10
+ 028A 08                push A
+ 028B 7C0000            xcall __mul16
+ 028E 38FC              add SP,-4
+ 0290 5100              mov A,[__rX]
+ 0292 5300              mov [__r1],A
+ 0294 5100              mov A,[__rY]
+ 0296 5300              mov [__r0],A
+ 0298 6800              asr [__r0]
+ 029A 6E00              rrc [__r1]
+ 029C 5100              mov A,[__r1]
+ 029E 5401              mov [X+1],A
+ 02A0 5100              mov A,[__r0]
+ 02A2 5400              mov [X+0],A
+ 02A4                   .dbline 236
+ 02A4           ;       calcTemp = (tempVal0 | (tempVal1 << 8));
+ 02A4 5202              mov A,[X+2]
+ 02A6 5300              mov [__r0],A
+ 02A8 550000            mov [__r1],0
+ 02AB 5203              mov A,[X+3]
+ 02AD 2A00              or A,[__r1]
+ 02AF 5300              mov [__r1],A
+ 02B1 5000              mov A,0
+ 02B3 2A00              or A,[__r0]
+ 02B5 5300              mov [__r0],A
+ 02B7 5100              mov A,[__r1]
+ 02B9 5401              mov [X+1],A
+ 02BB 5100              mov A,[__r0]
+ 02BD 5400              mov [X+0],A
+ 02BF                   .dbline 238
+ 02BF           ; 
+ 02BF           ;       return calcTemp;
+ 02BF 5201              mov A,[X+1]
+ 02C1 5300              mov [__r1],A
+ 02C3 5200              mov A,[X+0]
+ 02C5 5300              mov [__r0],A
+ 02C7                   .dbline -2
+ 02C7           L79:
+ 02C7 38FC              add SP,-4
+ 02C9 20                pop X
+ 02CA                   .dbline 0 ; func end
+ 02CA 7F                ret
+ 02CB                   .dbsym l tempVal0 3 c
+ 02CB                   .dbsym l tempVal1 2 c
+ 02CB                   .dbsym l calcTemp 0 i
+ 02CB                   .dbend
+ 02CB                   .dbfunc e DHT22_CalculateRH _DHT22_CalculateRH fi
+ 02CB           ;         RHVal1 -> X+3
+ 02CB           ;         RHVal0 -> X+2
+ 02CB           ;         calcRH -> X+0
+ 02CB           _DHT22_CalculateRH::
+ 02CB                   .dbline -1
+ 02CB 10                push X
+ 02CC 4F                mov X,SP
+ 02CD 3804              add SP,4
+ 02CF                   .dbline 243
+ 02CF           ; }
+ 02CF           ; 
+ 02CF           ; /* Calculate temperature value from the readback data */
+ 02CF           ; WORD DHT22_CalculateRH(void)
+ 02CF           ; {
+ 02CF                   .dbline 245
+ 02CF           ;       WORD calcRH;
+ 02CF           ;       BYTE RHVal0 = scratchpad[RH_LSB];
+ 02CF 62D000            mov REG[0xd0],>_scratchpad
+ 02D2 5101              mov A,[_scratchpad+1]
+ 02D4 5402              mov [X+2],A
+ 02D6                   .dbline 246
+ 02D6           ;       BYTE RHVal1 = scratchpad[RH_MSB];
+ 02D6 5100              mov A,[_scratchpad]
+ 02D8 5403              mov [X+3],A
+ 02DA                   .dbline 251
+ 02DA           ; 
+ 02DA           ;       /* Calculate temperature
+ 02DA           ;          the resultant value is multiplied by SCALE_FACT to preserve decimal digits */
+ 02DA           ;       
+ 02DA           ;       calcRH = RHVal0 | (RHVal1 << 8);
+ 02DA 62D000            mov REG[0xd0],>__r0
+ 02DD 5203              mov A,[X+3]
+ 02DF 5300              mov [__r0],A
+ 02E1 550000            mov [__r1],0
+ 02E4 5202              mov A,[X+2]
+ 02E6 2A00              or A,[__r1]
+ 02E8 5300              mov [__r1],A
+ 02EA 5000              mov A,0
+ 02EC 2A00              or A,[__r0]
+ 02EE 5300              mov [__r0],A
+ 02F0 5100              mov A,[__r1]
+ 02F2 5401              mov [X+1],A
+ 02F4 5100              mov A,[__r0]
+ 02F6 5400              mov [X+0],A
+ 02F8                   .dbline 253
+ 02F8           ;       
+ 02F8           ;       return calcRH;
+ 02F8 5201              mov A,[X+1]
+ 02FA 5300              mov [__r1],A
+ 02FC 5200              mov A,[X+0]
+ 02FE 5300              mov [__r0],A
+ 0300                   .dbline -2
+ 0300           L82:
+ 0300 38FC              add SP,-4
+ 0302 20                pop X
+ 0303                   .dbline 0 ; func end
+ 0303 7F                ret
+ 0304                   .dbsym l RHVal1 3 c
+ 0304                   .dbsym l RHVal0 2 c
+ 0304                   .dbsym l calcRH 0 i
+ 0304                   .dbend
+ 0304                   .dbfunc e DHT22_Display_Temp _DHT22_Display_Temp fV
+ 0304           ;            tmp -> X+0
+ 0304           ;      sensorVal -> X-5
+ 0304           _DHT22_Display_Temp::
+ 0304                   .dbline -1
+ 0304 10                push X
+ 0305 4F                mov X,SP
+ 0306 3803              add SP,3
+ 0308                   .dbline 258
+ 0308           ; }
+ 0308           ; 
+ 0308           ; /* Display temp */
+ 0308           ; void DHT22_Display_Temp(WORD sensorVal)
+ 0308           ; {
+ 0308                   .dbline 260
+ 0308           ;       char tmp[3];
+ 0308           ;       LCD_PrCString("T=");
+ 0308 10                push X
+ 0309 500A              mov A,>L85
+ 030B 08                push A
+ 030C 500A              mov A,<L85
+ 030E 5C                mov X,A
+ 030F 18                pop A
+ 0310 7C0000            xcall _LCD_PrCString
+ 0313 20                pop X
+ 0314                   .dbline 263
+ 0314           ;       
+ 0314           ;       //if sign minus then print "-"
+ 0314           ;       if (DHT22_GetTempSign() == 1) {LCD_PrCString("-");} 
+ 0314 9F3A              xcall _DHT22_GetTempSign
+ 0316 62D000            mov REG[0xd0],>__r0
+ 0319 3901              cmp A,1
+ 031B B00D              jnz L86
+ 031D                   .dbline 263
+ 031D                   .dbline 263
+ 031D 10                push X
+ 031E 5008              mov A,>L88
+ 0320 08                push A
+ 0321 5008              mov A,<L88
+ 0323 5C                mov X,A
+ 0324 18                pop A
+ 0325 7C0000            xcall _LCD_PrCString
+ 0328 20                pop X
+ 0329                   .dbline 263
+ 0329           L86:
+ 0329                   .dbline 265
+ 0329           ;       
+ 0329           ;       itoa(tmp,sensorVal/10,10);
+ 0329 5000              mov A,0
+ 032B 08                push A
+ 032C 500A              mov A,10
+ 032E 08                push A
+ 032F 62D000            mov REG[0xd0],>__r0
+ 0332 5000              mov A,0
+ 0334 08                push A
+ 0335 500A              mov A,10
+ 0337 08                push A
+ 0338 52FB              mov A,[X-5]
+ 033A 08                push A
+ 033B 52FC              mov A,[X-4]
+ 033D 08                push A
+ 033E 7C0000            xcall __divmodu_16X16_16
+ 0341 18                pop A
+ 0342 5300              mov [__r1],A
+ 0344 18                pop A
+ 0345 38FE              add SP,-2
+ 0347 08                push A
+ 0348 5100              mov A,[__r1]
+ 034A 08                push A
+ 034B 5007              mov A,7
+ 034D 08                push A
+ 034E 10                push X
+ 034F 7C0000            xcall _itoa
+ 0352 38FA              add SP,-6
+ 0354                   .dbline 266
+ 0354           ;       LCD_PrString(tmp);
+ 0354 62D000            mov REG[0xd0],>__r0
+ 0357 10                push X
+ 0358 5007              mov A,7
+ 035A 08                push A
+ 035B 18                pop A
+ 035C 7C0000            xcall _LCD_PrString
+ 035F                   .dbline 267
+ 035F           ;       LCD_PrCString(".");
+ 035F 5006              mov A,>L89
+ 0361 08                push A
+ 0362 5006              mov A,<L89
+ 0364 5C                mov X,A
+ 0365 18                pop A
+ 0366 7C0000            xcall _LCD_PrCString
+ 0369 20                pop X
+ 036A                   .dbline 268
+ 036A           ;       itoa(tmp,sensorVal%10,10);
+ 036A 5000              mov A,0
+ 036C 08                push A
+ 036D 500A              mov A,10
+ 036F 08                push A
+ 0370 62D000            mov REG[0xd0],>__r0
+ 0373 5000              mov A,0
+ 0375 08                push A
+ 0376 500A              mov A,10
+ 0378 08                push A
+ 0379 52FB              mov A,[X-5]
+ 037B 08                push A
+ 037C 52FC              mov A,[X-4]
+ 037E 08                push A
+ 037F 7C0000            xcall __divmodu_16X16_16
+ 0382 38FE              add SP,-2
+ 0384 18                pop A
+ 0385 5300              mov [__r1],A
+ 0387 18                pop A
+ 0388 08                push A
+ 0389 5100              mov A,[__r1]
+ 038B 08                push A
+ 038C 5007              mov A,7
+ 038E 08                push A
+ 038F 10                push X
+ 0390 7C0000            xcall _itoa
+ 0393 38FA              add SP,-6
+ 0395                   .dbline 269
+ 0395           ;       LCD_PrString(tmp);
+ 0395 62D000            mov REG[0xd0],>__r0
+ 0398 10                push X
+ 0399 5007              mov A,7
+ 039B 08                push A
+ 039C 18                pop A
+ 039D 7C0000            xcall _LCD_PrString
+ 03A0                   .dbline 270
+ 03A0           ;       LCD_PrCString("C");
+ 03A0 5004              mov A,>L90
+ 03A2 08                push A
+ 03A3 5004              mov A,<L90
+ 03A5 5C                mov X,A
+ 03A6 18                pop A
+ 03A7 7C0000            xcall _LCD_PrCString
+ 03AA 20                pop X
+ 03AB                   .dbline -2
+ 03AB           L84:
+ 03AB 38FD              add SP,-3
+ 03AD 20                pop X
+ 03AE                   .dbline 0 ; func end
+ 03AE 7F                ret
+ 03AF                   .dbsym l tmp 0 A[3:3]c
+ 03AF                   .dbsym l sensorVal -5 i
+ 03AF                   .dbend
+ 03AF                   .dbfunc e DHT22_Display_RH _DHT22_Display_RH fV
+ 03AF           ;            tmp -> X+0
+ 03AF           ;      sensorVal -> X-5
+ 03AF           _DHT22_Display_RH::
+ 03AF                   .dbline -1
+ 03AF 10                push X
+ 03B0 4F                mov X,SP
+ 03B1 3803              add SP,3
+ 03B3                   .dbline 275
+ 03B3           ; }
+ 03B3           ; 
+ 03B3           ; /* Display RH */
+ 03B3           ; void DHT22_Display_RH(WORD sensorVal)
+ 03B3           ; {
+ 03B3                   .dbline 277
+ 03B3           ;       char tmp[3];
+ 03B3           ;       LCD_PrCString("RH=");
+ 03B3 10                push X
+ 03B4 5000              mov A,>L92
+ 03B6 08                push A
+ 03B7 5000              mov A,<L92
+ 03B9 5C                mov X,A
+ 03BA 18                pop A
+ 03BB 7C0000            xcall _LCD_PrCString
+ 03BE 20                pop X
+ 03BF                   .dbline 278
+ 03BF           ;       itoa(tmp,sensorVal/10,10);
+ 03BF 5000              mov A,0
+ 03C1 08                push A
+ 03C2 500A              mov A,10
+ 03C4 08                push A
+ 03C5 62D000            mov REG[0xd0],>__r0
+ 03C8 5000              mov A,0
+ 03CA 08                push A
+ 03CB 500A              mov A,10
+ 03CD 08                push A
+ 03CE 52FB              mov A,[X-5]
+ 03D0 08                push A
+ 03D1 52FC              mov A,[X-4]
+ 03D3 08                push A
+ 03D4 7C0000            xcall __divmodu_16X16_16
+ 03D7 18                pop A
+ 03D8 5300              mov [__r1],A
+ 03DA 18                pop A
+ 03DB 38FE              add SP,-2
+ 03DD 08                push A
+ 03DE 5100              mov A,[__r1]
+ 03E0 08                push A
+ 03E1 5007              mov A,7
+ 03E3 08                push A
+ 03E4 10                push X
+ 03E5 7C0000            xcall _itoa
+ 03E8 38FA              add SP,-6
+ 03EA                   .dbline 279
+ 03EA           ;       LCD_PrString(tmp);
+ 03EA 62D000            mov REG[0xd0],>__r0
+ 03ED 10                push X
+ 03EE 5007              mov A,7
+ 03F0 08                push A
+ 03F1 18                pop A
+ 03F2 7C0000            xcall _LCD_PrString
+ 03F5                   .dbline 280
+ 03F5           ;       LCD_PrCString(".");
+ 03F5 5006              mov A,>L89
+ 03F7 08                push A
+ 03F8 5006              mov A,<L89
+ 03FA 5C                mov X,A
+ 03FB 18                pop A
+ 03FC 7C0000            xcall _LCD_PrCString
+ 03FF 20                pop X
+ 0400                   .dbline 281
+ 0400           ;       itoa(tmp,sensorVal%10,10);
+ 0400 5000              mov A,0
+ 0402 08                push A
+ 0403 500A              mov A,10
+ 0405 08                push A
+ 0406 62D000            mov REG[0xd0],>__r0
+ 0409 5000              mov A,0
+ 040B 08                push A
+ 040C 500A              mov A,10
+ 040E 08                push A
+ 040F 52FB              mov A,[X-5]
+ 0411 08                push A
+ 0412 52FC              mov A,[X-4]
+ 0414 08                push A
+ 0415 7C0000            xcall __divmodu_16X16_16
+ 0418 38FE              add SP,-2
+ 041A 18                pop A
+ 041B 5300              mov [__r1],A
+ 041D 18                pop A
+ 041E 08                push A
+ 041F 5100              mov A,[__r1]
+ 0421 08                push A
+ 0422 5007              mov A,7
+ 0424 08                push A
+ 0425 10                push X
+ 0426 7C0000            xcall _itoa
+ 0429 38FA              add SP,-6
+ 042B                   .dbline 282
+ 042B           ;       LCD_PrString(tmp);
+ 042B 62D000            mov REG[0xd0],>__r0
+ 042E 10                push X
+ 042F 5007              mov A,7
+ 0431 08                push A
+ 0432 18                pop A
+ 0433 7C0000            xcall _LCD_PrString
+ 0436 20                pop X
+ 0437                   .dbline -2
+ 0437           L91:
+ 0437 38FD              add SP,-3
+ 0439 20                pop X
+ 043A                   .dbline 0 ; func end
+ 043A 7F                ret
+ 043B                   .dbsym l tmp 0 A[3:3]c
+ 043B                   .dbsym l sensorVal -5 i
+ 043B                   .dbend
+                        .area data(ram, con, rel)
+ 0000                   .dbfile D:\ADRIAN~1\TASPRO~1\TASPRO~1\dht22.c
+ 0000           _lcdString::
+ 0000 00000000000000000000      .word 0,0,0,0,0
+ 000A 000000000000      .byte 0,0,0,0,0,0
+ 0010                   .dbsym e lcdString _lcdString A[16:16]c
+                        .area data(ram, con, rel)
+ 0000                   .dbfile D:\ADRIAN~1\TASPRO~1\TASPRO~1\dht22.c
+ 0000           _scratchpad::
+ 0000 00000000          .byte 0,0,0,0
+ 0004                   .dbsym e scratchpad _scratchpad A[4:4]c
+                        .area lit(rom, con, rel, lit)
+ 0000           L92:
+ 0000 52483D00          .byte 'R,'H,61,0
+ 0004           L90:
+ 0004 4300              .byte 'C,0
+ 0006           L89:
+ 0006 2E00              .byte 46,0
+ 0008           L88:
+ 0008 2D00              .byte 45,0
+ 000A           L85:
+ 000A 543D00            .byte 'T,61,0

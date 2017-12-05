@@ -1,0 +1,27 @@
+# DO NOT DELETE
+./obj/boot.o : \
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/CY8C29~1/m8c.inc\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/CY8C29~1/m8ssc.inc\
+   D:\ADRIAN~1\TASPRO~1\TASPRO~1\lib\GLOBAL~1.INC\
+   D:\ADRIAN~1\TASPRO~1\TASPRO~1\memory.inc
+./obj/dht22.o :  ./lib/LCD.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/CY8C29~1/m8c.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/_const.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/limits.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/stdlib.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/string.h\
+   D:\ADRIAN~1\TASPRO~1\TASPRO~1\dht22.h
+./obj/main.o :  ./lib/LCD.h ./lib/PSoCAPI.h ./lib/PSOCGP~1.H\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/CY8C29~1/m8c.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/_const.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/stdarg.h\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/stdio.h\
+   D:\ADRIAN~1\TASPRO~1\TASPRO~1\dht22.h
+./lib/obj/lcd.o :  ./lib/LCD.inc\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/CY8C29~1/m8c.inc\
+   D:\ADRIAN~1\TASPRO~1\TASPRO~1\memory.inc
+./lib/obj/psocconfig.o :  ./lib/GLOBAL~1.INC\
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/CY8C29~1/m8c.inc\
+   D:\ADRIAN~1\TASPRO~1\TASPRO~1\memory.inc
+./lib/obj/psocconfigtbl.o : \
+   C:/PROGRA~1/Cypress/PSOCDE~1/5.4/Common/CYPRES~1/tools/include/CY8C29~1/m8c.inc
